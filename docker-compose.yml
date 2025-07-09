@@ -1,0 +1,55 @@
+version: '3.8'
+
+services:
+  db:
+    image: postgres:13-alpine
+    restart: always
+    environment:
+      POSTGRES_DB: ${DB_NAME}
+      POSTGRES_USER: ${DB_USER}
+      POSTGRES_PASSWORD: ${DB_PASSWORD}
+    volumes:
+      - pg_data:/var/lib/postgresql/data
+      - ./db/init.sql:/docker-entrypoint-initdb.d/init.sql
+      - ./db/seed.sql:/docker-entrypoint-initdb.d/seed.sql
+    ports:
+      - "5432:5432"
+    networks:
+      - app-network
+
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    restart: always
+    environment:
+      DATABASE_URL: postgres://${DB_USER}:${DB_PASSWORD}@db:5432/${DB_NAME}
+      JWT_SECRET: ${JWT_SECRET}
+      PORT: 3001
+    ports:
+      - "3001:3001"
+    depends_on:
+      - db
+    networks:
+      - app-network
+
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    restart: always
+    environment:
+      NEXT_PUBLIC_API_BASE_URL: http://localhost:3001/api # Adjust if deploying to different host
+    ports:
+      - "3000:80"
+    depends_on:
+      - backend
+    networks:
+      - app-network
+
+networks:
+  app-network:
+    driver: bridge
+
+volumes:
+  pg_data:

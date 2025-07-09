@@ -1,0 +1,41 @@
+name: CI Pipeline
+
+on: [pull_request]
+
+jobs:
+  backend-test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - name: Set up Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: '18'
+      - name: Install dependencies
+        run: npm install
+        working-directory: ./backend
+      - name: Run backend tests
+        run: npm test
+        working-directory: ./backend
+        env:
+          NODE_ENV: test
+          # Add test database environment variables here if needed
+          # DB_NAME: test_db
+          # DB_USER: test_user
+          # DB_PASSWORD: test_password
+          # DATABASE_URL: postgres://test_user:test_password@localhost:5432/test_db
+
+  frontend-test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - name: Set up Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: '18'
+      - name: Install dependencies
+        run: npm install
+        working-directory: ./frontend
+      - name: Run frontend tests
+        run: npm test
+        working-directory: ./frontend
